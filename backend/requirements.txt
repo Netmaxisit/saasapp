@@ -1,7 +1,8 @@
 fastapi
 uvicorn[standard]
 python-jose
-passlib[bcrypt]
+passlib[bcrypt]==1.7.4  # Adjust this version as necessary
 pydantic
 PyJWT
 python-multipart
+bcrypt==3.2.0  # Adjust this version as necessary
