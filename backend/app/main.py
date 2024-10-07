@@ -4,10 +4,18 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 import jwt
 from datetime import datetime, timedelta
+from passlib.context import CryptContext
+import os
+from dotenv import load_dotenv
 
-SECRET_KEY = "Jd3q8N1d6RlXcZ9wTyA2Zc5R-KvLgW0R"  # Use a strong, unique key in production
+# Load environment variables from .env file
+load_dotenv()
+
+# Secret key and algorithm for JWT
+SECRET_KEY = os.getenv("SECRET_KEY")  # Make sure to set this in your .env file
 ALGORITHM = "HS256"
 
+# Create FastAPI instance
 app = FastAPI()
 
 # CORS settings to allow communication between frontend and backend
@@ -20,39 +28,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Password hashing setup
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # OAuth2 configuration
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+# User data models
 class TokenData(BaseModel):
     username: str = None
 
 class User(BaseModel):
     username: str
 
-# Simulate a database of users
-fake_users_db = {"admin": {"username": "admin", "password": "adminpass"}}
+# Simulated database of users with hashed passwords
+fake_users_db = {
+    "admin": {
+        "username": "admin",
+        "password": pwd_context.hash("adminpass"),  # Store hashed password
+    }
+}
 
+# Function to verify user credentials
 def verify_user(username: str, password: str):
-    if username in fake_users_db and fake_users_db[username]["password"] == password:
+    user = fake_users_db.get(username)
+    if user and pwd_context.verify(password, user["password"]):
         return User(username=username)
     return None
 
+# Function to create JWT access token
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=15))
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # Public endpoint
 @app.get("/api/public-data")
 async def public_data():
     return {"message": "This is public data"}
 
-# Admin data (protected)
+# Protected admin data endpoint
 @app.get("/api/admin-data")
 async def admin_data(token: str = Depends(oauth2_scheme)):
     try:
