@@ -5,13 +5,13 @@ from pydantic import BaseModel
 import jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "your_secret_key"  # Use a strong, unique key in production
+SECRET_KEY = "Jd3q8N1d6RlXcZ9wTyA2Zc5R-KvLgW0R"  # Use a strong, unique key in production
 ALGORITHM = "HS256"
 
 app = FastAPI()
 
 # CORS settings to allow communication between frontend and backend
-origins = ["https://your-frontend-domain.com", "http://localhost:8000"]
+origins = ["https://saasapp.netmaxis.cloud", "http://localhost:8000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
