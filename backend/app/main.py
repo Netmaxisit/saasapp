@@ -63,6 +63,11 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+
 # Public endpoint
 @app.get("/api/public-data")
 async def public_data():
